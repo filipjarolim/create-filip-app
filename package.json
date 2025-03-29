@@ -1,0 +1,47 @@
+{
+  "name": "create-filip-app",
+  "version": "2.7.26",
+  "bin": {
+    "create-filip-app": "index.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
+    "cli-progress": "^3.12.0",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.3.0",
+    "gradient-string": "^3.0.0",
+    "inquirer": "^8.2.6",
+    "inquirer-search-checkbox": "^1.0.0",
+    "ora": "^8.2.0",
+    "prompts": "^2.4.2"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "version:patch": "node -e \"const fs=require('fs');const p=require('./package.json');p.version=require('semver').inc(p.version,'patch');fs.writeFileSync('./package.json',JSON.stringify(p,null,2));console.log('Version updated to '+p.version)\"",
+    "version:minor": "node -e \"const fs=require('fs');const p=require('./package.json');p.version=require('semver').inc(p.version,'minor');fs.writeFileSync('./package.json',JSON.stringify(p,null,2));console.log('Version updated to '+p.version)\"",
+    "version:major": "node -e \"const fs=require('fs');const p=require('./package.json');p.version=require('semver').inc(p.version,'major');fs.writeFileSync('./package.json',JSON.stringify(p,null,2));console.log('Version updated to '+p.version)\""
+  },
+  "keywords": [
+    "cli",
+    "nextjs",
+    "create-app",
+    "shadcn",
+    "tailwind"
+  ],
+  "author": "Filip",
+  "license": "MIT",
+  "description": "A modern CLI tool for creating Next.js applications with best practices and shadcn components.",
+  "engines": {
+    "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/username/create-filip-app.git"
+  },
+  "bugs": {
+    "url": "https://github.com/username/create-filip-app/issues"
+  }
+}
