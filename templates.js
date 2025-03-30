@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { ArrowRight, Github, Star, GitFork } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { ThemeToggle } from '@/components/theme/theme-toggle'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Home() {
   return (
@@ -616,34 +616,11 @@ export function cn(...inputs: ClassValue[]) {
 // README Template
 export const readmeContent = (appName) => `# ${appName}
 
-A modern Next.js application created with [create-filip-app](https://github.com/filiphric/create-filip-app).
-
-## Features
-
-✨ **Next.js 15+** - Built with the latest Next.js features  
-🔒 **TypeScript** - Type-safe code by default  
-🎨 **Tailwind CSS v4** - Modern CSS-first approach  
-🧩 **shadcn/ui** - Beautiful UI components  
-🌓 **Dark Mode** - Built-in theme switcher  
-📱 **Responsive Design** - Mobile-first layouts  
-🧰 **PostCSS** - Advanced CSS processing  
-🚀 **Modern Development** - Fast refresh and optimized builds
+This project was created with [create-filip-app](https://github.com/filiphric/create-filip-app).
 
 ## Getting Started
 
-First, install the dependencies:
-
-\`\`\`bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-\`\`\`
-
-Then, run the development server:
+First, run the development server:
 
 \`\`\`bash
 npm run dev
@@ -656,60 +633,6 @@ bun dev
 \`\`\`
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## Project Structure
-
-\`\`\`
-├── app/                   # Next.js app directory
-│   ├── globals.css        # Global CSS with Tailwind imports
-│   ├── layout.tsx         # Root layout with theme provider
-│   └── page.tsx           # Home page
-├── components/            # UI components
-│   ├── ui/                # shadcn/ui components
-│   └── theme/             # Theme components
-├── lib/                   # Utility functions
-├── public/                # Static assets
-├── postcss.config.mjs     # PostCSS configuration
-├── next.config.js         # Next.js configuration
-└── tsconfig.json          # TypeScript configuration
-\`\`\`
-
-## Tailwind CSS v4
-
-This project uses Tailwind CSS v4 with the modern CSS-first approach:
-
-\`\`\`css
-@import 'tailwindcss';
-
-@plugin 'tailwindcss-animate';
-
-@theme {
-  // Theme configuration
-}
-\`\`\`
-
-## Components
-
-This project uses [shadcn/ui](https://ui.shadcn.com) for UI components. These components are not installed as dependencies but are copied directly into your project's component folder, making them fully customizable.
-
-## Theme Switching
-
-The theme switching functionality is built using [next-themes](https://github.com/pacocoursey/next-themes). You can toggle between light, dark, and system themes.
-
-## Learn More
-
-To learn more about the technologies used in this project:
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS v4](https://tailwindcss.com/)
-- [shadcn/ui Components](https://ui.shadcn.com)
-- [TypeScript Documentation](https://www.typescriptlang.org/docs)
-
-## Deploy
-
-This project can be easily deployed to platforms like Vercel, Netlify, or any other service that supports Next.js applications.
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/filiphric/create-filip-app)
 `;
 
 // Theme Provider Template
@@ -717,10 +640,32 @@ export const themeProviderContent = `"use client"
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
-import { type ThemeProviderProps } from "next-themes/dist/types"
 
-export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
-  return <NextThemesProvider {...props}>{children}</NextThemesProvider>
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  attribute?: string;
+  defaultTheme?: string;
+  enableSystem?: boolean;
+  disableTransitionOnChange?: boolean;
+};
+
+export function ThemeProvider({ 
+  children,
+  attribute = "class",
+  defaultTheme = "system",
+  enableSystem = true,
+  disableTransitionOnChange = false,
+}: ThemeProviderProps) {
+  return (
+    <NextThemesProvider
+      attribute={attribute}
+      defaultTheme={defaultTheme}
+      enableSystem={enableSystem}
+      disableTransitionOnChange={disableTransitionOnChange}
+    >
+      {children}
+    </NextThemesProvider>
+  );
 }`;
 
 // Theme Toggle Template
@@ -1128,7 +1073,7 @@ import { ReactNode } from "react";
 import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   Sheet,
   SheetContent,
@@ -1225,56 +1170,460 @@ export function PageLayout({
   );
 }`;
 
-// .gitignore Template
-export const gitignoreContent = `# dependencies
-/node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
+// Components Showcase Page Template
+export const componentsShowcasePage = `"use client"
 
-# testing
-/coverage
-/test-results/
-/playwright-report/
-/playwright/.cache/
+import * as React from "react"
+import Link from "next/link"
+import { ChevronDown } from "lucide-react"
 
-# next.js
-/.next/
-/out/
-/build
+// UI Components
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Separator } from "@/components/ui/separator"
+import { ThemeToggle } from "@/components/theme-toggle"
 
-# production
-/dist
+// Custom Components
+import { FileUploader } from "@/components/file-uploader"
+import { VideoPlayer } from "@/components/video-player"
+import { Timeline } from "@/components/timeline"
+import { Rating } from "@/components/rating"
+import { FileTree } from "@/components/file-tree"
+import { CopyButton } from "@/components/copy-button"
 
-# misc
-.DS_Store
-*.pem
+export default function ComponentsShowcase() {
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false)
+  
+  // Sample data for demo components
+  const timelineItems = [
+    {
+      id: "step-1",
+      title: "Step 1: Plan",
+      content: "Create a project plan and gather requirements",
+      date: "Jan 1, 2023",
+      status: "past"
+    },
+    {
+      id: "step-2",
+      title: "Step 2: Design",
+      content: "Design the user interface and system architecture",
+      date: "Feb 15, 2023",
+      status: "past"
+    },
+    {
+      id: "step-3",
+      title: "Step 3: Develop",
+      content: "Implement the features and functionality",
+      date: "March 20, 2023",
+      status: "current"
+    },
+    {
+      id: "step-4",
+      title: "Step 4: Test & Deploy",
+      content: "Test the application and deploy to production",
+      date: "April 30, 2023",
+      status: "future"
+    }
+  ]
+  
+  const fileTreeData = [
+    {
+      id: "root",
+      name: "Project Root",
+      type: "folder",
+      children: [
+        {
+          id: "src",
+          name: "src",
+          type: "folder",
+          children: [
+            {
+              id: "app",
+              name: "app",
+              type: "folder",
+              children: [
+                { id: "page", name: "page.tsx", type: "file" },
+                { id: "layout", name: "layout.tsx", type: "file" }
+              ]
+            },
+            {
+              id: "components",
+              name: "components",
+              type: "folder",
+              children: [
+                { id: "button", name: "button.tsx", type: "file" },
+                { id: "card", name: "card.tsx", type: "file" }
+              ]
+            }
+          ]
+        },
+        { id: "package", name: "package.json", type: "file" },
+        { id: "tsconfig", name: "tsconfig.json", type: "file" }
+      ]
+    }
+  ]
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+  return (
+    <div className="min-h-screen pb-10">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-16 items-center justify-between py-4">
+          <h1 className="text-xl font-bold">Components Showcase</h1>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Link href="https://github.com/filiphric/create-filip-app" target="_blank">
+              <Button variant="outline" size="sm">GitHub</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
-# local env files
-.env*.local
-.env
-.env.development
-.env.test
-.env.production
+      <main className="container py-6 md:py-10">
+        <div className="flex flex-col gap-4">
+          <section className="space-y-4">
+            <h2 className="text-3xl font-bold tracking-tight">Component Showcase</h2>
+            <p className="text-muted-foreground">
+              This page demonstrates all UI and custom components available in your new project.
+              Components are organized by category for easy reference.
+            </p>
+          </section>
 
-# vercel
-.vercel
+          <Tabs defaultValue="ui" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="ui">UI Components</TabsTrigger>
+              <TabsTrigger value="custom">Custom Components</TabsTrigger>
+            </TabsList>
+            
+            {/* UI Components Tab */}
+            <TabsContent value="ui" className="space-y-10">
+              {/* Interactive Components Section */}
+              <section className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold">Interactive Components</h3>
+                  <p className="text-muted-foreground">Components that handle user interactions and actions</p>
+                </div>
+                <Separator />
+                
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Button Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Button</CardTitle>
+                      <CardDescription>Interactive button component with variants</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-wrap gap-2">
+                        <Button>Default</Button>
+                        <Button variant="secondary">Secondary</Button>
+                        <Button variant="destructive">Destructive</Button>
+                        <Button variant="outline">Outline</Button>
+                        <Button variant="ghost">Ghost</Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <Button size="sm">Small</Button>
+                        <Button size="default">Default</Button>
+                        <Button size="lg">Large</Button>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+                  {/* Dialog Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Dialog</CardTitle>
+                      <CardDescription>Modal dialog for user interactions</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button>Open Dialog</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Dialog Title</DialogTitle>
+                            <DialogDescription>
+                              This is a dialog component for modal interactions.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="py-4">
+                            <p>Dialog content goes here.</p>
+                          </div>
+                          <DialogFooter>
+                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                              Cancel
+                            </Button>
+                            <Button onClick={() => setIsDialogOpen(false)}>Continue</Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    </CardContent>
+                  </Card>
 
-# editors
-.idea/
-.vscode/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-`; 
+                  {/* Dropdown Menu Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Dropdown Menu</CardTitle>
+                      <CardDescription>Menu with dropdown options</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline">
+                            Open Menu <ChevronDown className="ml-2 h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem>Profile</DropdownMenuItem>
+                          <DropdownMenuItem>Settings</DropdownMenuItem>
+                          <DropdownMenuItem>Logout</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tooltip Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Tooltip</CardTitle>
+                      <CardDescription>Informational tooltip on hover</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline">Hover Me</Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>This is a tooltip that appears on hover</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardContent>
+                  </Card>
+                </div>
+              </section>
+
+              {/* Layout Components Section */}
+              <section className="space-y-6 pt-4">
+                <div>
+                  <h3 className="text-2xl font-bold">Layout Components</h3>
+                  <p className="text-muted-foreground">Components for organizing and structuring content</p>
+                </div>
+                <Separator />
+                
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Card Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Card</CardTitle>
+                      <CardDescription>Content container with sections</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p>This is the card content section where the main content is displayed.</p>
+                    </CardContent>
+                    <CardFooter>
+                      <p className="text-sm text-muted-foreground">Last updated: Today</p>
+                    </CardFooter>
+                  </Card>
+
+                  {/* Accordion Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Accordion</CardTitle>
+                      <CardDescription>Collapsible content sections</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="item-1">
+                          <AccordionTrigger>Section 1</AccordionTrigger>
+                          <AccordionContent>
+                            Content for section 1 goes here. This content is only visible when expanded.
+                          </AccordionContent>
+                        </AccordionItem>
+                        <AccordionItem value="item-2">
+                          <AccordionTrigger>Section 2</AccordionTrigger>
+                          <AccordionContent>
+                            Content for section 2 goes here. Expand and collapse to see content.
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </CardContent>
+                  </Card>
+
+                  {/* Tabs Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Tabs</CardTitle>
+                      <CardDescription>Tabbed interface for content</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Tabs defaultValue="tab1" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                          <TabsTrigger value="tab1">Tab 1</TabsTrigger>
+                          <TabsTrigger value="tab2">Tab 2</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="tab1" className="p-4">
+                          Content for tab 1
+                        </TabsContent>
+                        <TabsContent value="tab2" className="p-4">
+                          Content for tab 2
+                        </TabsContent>
+                      </Tabs>
+                    </CardContent>
+                  </Card>
+                </div>
+              </section>
+
+              {/* Form Components Section */}
+              <section className="space-y-6 pt-4">
+                <div>
+                  <h3 className="text-2xl font-bold">Form Components</h3>
+                  <p className="text-muted-foreground">Components for user input and form creation</p>
+                </div>
+                <Separator />
+                
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  {/* Input Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Input</CardTitle>
+                      <CardDescription>Text input field</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="default-input">Default Input</Label>
+                        <Input id="default-input" placeholder="Enter text here..." />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="disabled-input">Disabled Input</Label>
+                        <Input id="disabled-input" placeholder="Disabled input" disabled />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </section>
+            </TabsContent>
+            
+            {/* Custom Components Tab */}
+            <TabsContent value="custom" className="space-y-10">
+              <section className="space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold">Custom Components</h3>
+                  <p className="text-muted-foreground">Specialized components built for specific use cases</p>
+                </div>
+                <Separator />
+                
+                <div className="grid gap-6 md:grid-cols-2">
+                  {/* File Uploader Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>File Uploader</CardTitle>
+                      <CardDescription>Drag & drop file uploading</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FileUploader 
+                        maxFiles={3} 
+                        maxSize={5 * 1024 * 1024} 
+                        onFilesChange={(files) => console.log(files)}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Video Player Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Video Player</CardTitle>
+                      <CardDescription>Custom video player interface</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <VideoPlayer
+                        src="https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4"
+                        poster="https://sample-videos.com/img/Sample-jpg-image-50kb.jpg"
+                        title="Big Buck Bunny"
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Timeline Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Timeline</CardTitle>
+                      <CardDescription>Vertical progress timeline</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Timeline items={timelineItems} />
+                    </CardContent>
+                  </Card>
+
+                  {/* Rating Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Rating</CardTitle>
+                      <CardDescription>Star rating input component</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Read-only Rating</Label>
+                        <Rating value={4} readonly />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Interactive Rating</Label>
+                        <Rating value={2} onChange={(value) => console.log(value)} />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* File Tree Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>File Tree</CardTitle>
+                      <CardDescription>Interactive file system explorer</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <FileTree 
+                        data={fileTreeData} 
+                        onSelect={(node) => console.log("Selected:", node.name)}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* Copy Button Component */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Copy Button</CardTitle>
+                      <CardDescription>One-click text copying</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-2 bg-muted rounded-md">
+                        <code className="text-sm">npm install @/components</code>
+                        <CopyButton value="npm install @/components" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CopyButton 
+                          value="Text with label" 
+                          variant="default" 
+                          size="default" 
+                          label="Copy Text" 
+                          successLabel="Copied!" 
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </section>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+    </div>
+  )
+}`; 

@@ -7,40 +7,108 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 `;
 
-// An example of a basic database client
-const prismaClientExample = `// lib/prisma.ts
-import { PrismaClient } from '@prisma/client'
+// MongoDB connection utility for NextAuth
+const mongodbClientUtil = `// lib/mongodb.ts
+import { MongoClient } from "mongodb"
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient }
+if (!process.env.DATABASE_URL) {
+  throw new Error("Please add your MongoDB connection string to .env")
+}
 
-export const prisma = globalForPrisma.prisma || new PrismaClient()
+const uri = process.env.DATABASE_URL
+let client: MongoClient
+let clientPromise: Promise<MongoClient>
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+if (process.env.NODE_ENV === "development") {
+  // In development mode, use a global variable so that the value
+  // is preserved across module reloads caused by HMR (Hot Module Replacement).
+  let globalWithMongo = global as typeof globalThis & {
+    _mongoClientPromise?: Promise<MongoClient>
+  }
 
-export default prisma
+  if (!globalWithMongo._mongoClientPromise) {
+    client = new MongoClient(uri)
+    globalWithMongo._mongoClientPromise = client.connect()
+  }
+  clientPromise = globalWithMongo._mongoClientPromise
+} else {
+  // In production mode, it's best to not use a global variable.
+  client = new MongoClient(uri)
+  clientPromise = client.connect()
+}
+
+export { clientPromise }
 `;
 
-// Example .env file with Prisma database URL
-const envExample = `# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+// Example .env file with MongoDB database URL
+const envExample = `# Application
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=$(openssl rand -base64 32)
 
-DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+# OAuth Providers (examples)
+GITHUB_ID=your_github_client_id
+GITHUB_SECRET=your_github_client_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+# Database - MongoDB
+DATABASE_URL="mongodb+srv://username:password@your-cluster.mongodb.net/your-database?retryWrites=true&w=majority"
 `;
 
 // Example of a simple API route using Prisma
@@ -73,9 +141,10 @@ export async function POST(request: Request) {
 }
 `;
 
-module.exports = {
+// ES module exports
+export {
   prismaSchema,
-  prismaClientExample,
+  mongodbClientUtil,
   envExample,
   userApiExample
 };

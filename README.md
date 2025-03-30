@@ -13,7 +13,7 @@ npx create-filip-app
 
 - 🚀 **Next.js App Router** setup with TypeScript
 - 🎨 **TailwindCSS** configured out of the box
-- 🧩 **Shadcn UI Components** installation with component selection
+- 🧩 **Components System** with both UI and custom components
 - 📱 **Responsive layouts** option with grid and container components
 - 🎭 **Multiple themes** support in the interactive CLI
 - ⚡ **Ultra-fast mode** for quicker setup
@@ -26,7 +26,7 @@ npx create-filip-app
 
 1. Run the command and follow the prompts
 2. Select your preferred package manager
-3. Choose UI components to install
+3. Choose Components to install from the catalog
 4. Configure additional options
 5. Let the CLI set up your project automatically
 
@@ -38,7 +38,7 @@ npx create-filip-app
 ## Automatic Fallbacks
 
 - Falls back to npm if pnpm installation fails
-- Creates fallback components if shadcn installation fails
+- Creates fallback components if installation fails
 - Multiple component installation methods for reliability
 
 ## License

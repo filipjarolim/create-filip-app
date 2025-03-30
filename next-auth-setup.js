@@ -3,8 +3,11 @@ const authConfig = `import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
 import GitHubProvider from "next-auth/providers/github"
+import { MongoDBAdapter } from "@auth/mongodb-adapter"
+import { clientPromise } from "@/lib/mongodb"
 
 export const authOptions: NextAuthOptions = {
+  adapter: MongoDBAdapter(clientPromise),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -184,3 +187,32 @@ export default function SignIn() {
     </div>
   )
 }`
+
+// Properly typed AuthProvider component
+const authProviderContent = `"use client"
+
+import { SessionProvider } from "next-auth/react"
+import { ReactNode } from "react"
+
+type AuthProviderProps = {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  return (
+    <SessionProvider 
+      // Force refetch session when window focused to prevent stale session
+      refetchInterval={0}
+      refetchOnWindowFocus={true}
+    >
+      {children}
+    </SessionProvider>
+  )
+}`
+
+export {
+  authConfig,
+  authRouteHandler,
+  signInPage,
+  authProviderContent
+};

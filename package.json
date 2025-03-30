@@ -1,6 +1,6 @@
 {
   "name": "create-filip-app",
-  "version": "2.7.26",
+  "version": "3.1.1",
   "bin": {
     "create-filip-app": "index.js"
   },
@@ -8,12 +8,16 @@
   "dependencies": {
     "boxen": "^8.0.1",
     "chalk": "^5.4.1",
+    "class-variance-authority": "^0.7.1",
     "cli-progress": "^3.12.0",
+    "clsx": "^2.1.1",
+    "enquirer": "^2.4.1",
     "execa": "^9.5.2",
     "fs-extra": "^11.3.0",
     "gradient-string": "^3.0.0",
     "inquirer": "^8.2.6",
     "inquirer-search-checkbox": "^1.0.0",
+    "mongodb": "^6.15.0",
     "ora": "^8.2.0",
     "prompts": "^2.4.2"
   },
@@ -29,11 +33,14 @@
     "nextjs",
     "create-app",
     "shadcn",
-    "tailwind"
+    "tailwind",
+    "mongodb",
+    "nextauth",
+    "prisma"
   ],
   "author": "Filip",
   "license": "MIT",
-  "description": "A modern CLI tool for creating Next.js applications with best practices and shadcn components.",
+  "description": "A modern CLI tool for creating Next.js applications with best practices, shadcn components, and MongoDB integration.",
   "engines": {
     "node": ">=16"
   },

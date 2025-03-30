@@ -86,22 +86,20 @@ async function showWelcomeScreen() {
   
   console.log(boxen(
     `${chalk.bold(gradientFn('Welcome to the Filip App Creator!'))}\n\n` +
-    `This tool helps you create a production-ready Next.js app with:
-    
-    ${chalk.cyan('•')} ${chalk.bold('Next.js 14')} with App Router
-    ${chalk.cyan('•')} ${chalk.bold('TypeScript')} for type safety
-    ${chalk.cyan('•')} ${chalk.bold('TailwindCSS')} for styling
-    ${chalk.cyan('•')} ${chalk.bold('Shadcn UI')} components
-    ${chalk.cyan('•')} ${chalk.bold('Dark mode')} support
-    ${chalk.cyan('•')} ${chalk.bold('ESLint')} configuration`,
+    `${chalk.dim('This tool helps you create a production-ready Next.js app with:')}\n\n` +
+    `    ${chalk.green('•')} Next.js 14 with App Router\n` +
+    `    ${chalk.green('•')} TypeScript for type safety\n` +
+    `    ${chalk.green('•')} TailwindCSS for styling\n` +
+    `    ${chalk.green('•')} Components system (UI components)\n` +
+    `    ${chalk.green('•')} Dark mode support\n` +
+    `    ${chalk.green('•')} ESLint configuration\n`,
     { 
       padding: 1, 
-      margin: 1, 
+      margin: 1,
       borderStyle: 'round', 
-      borderColor: currentTheme.secondary,
+      borderColor: 'cyan',
       title: '✨ Welcome',
-      titleAlignment: 'center',
-      float: 'center'
+      titleAlignment: 'center'
     }
   ));
   
@@ -321,9 +319,15 @@ async function setupProjectManually(projectName, projectDir, pkgManager) {
     await fs.ensureDir(path.join(projectDir, 'public'));
     
     // Create a basic page.tsx
-    const pageContent = templates.pageContent(projectName);
+    // Choose page template based on whether components are being installed
+    let pageTemplate;
+    if (features && features.installComponents) {
+      pageTemplate = templates.componentsShowcasePage;
+    } else {
+      pageTemplate = templates.pageContent(projectName);
+    }
     
-    await fs.writeFile(path.join(projectDir, 'app', 'page.tsx'), pageContent);
+    await fs.writeFile(path.join(projectDir, 'app', 'page.tsx'), pageTemplate);
     
     // Create a basic layout.tsx
     const layoutContent = templates.layoutContent;
@@ -348,10 +352,6 @@ async function setupProjectManually(projectName, projectDir, pkgManager) {
     
     await fs.ensureDir(path.join(projectDir, 'app'));
     await fs.writeFile(path.join(projectDir, 'app', 'globals.css'), globalCssContent);
-    
-    // Create .gitignore file
-    const gitignoreContent = templates.gitignoreContent;
-    await fs.writeFile(path.join(projectDir, '.gitignore'), gitignoreContent);
     
     console.log(chalk.green(`Created basic Next.js app structure manually`));
     
@@ -427,9 +427,9 @@ async function run() {
       message: 'Select additional features:',
       choices: [
         { name: '✅ Install UI components', value: 'components', checked: true },
-        { name: '⚡ Ultra-fast mode', value: 'fastMode', checked: true },
+        { name: '⚡ Ultra-fast mode (10x faster setup)', value: 'fastMode', checked: true },
         { name: '🌓 Light/Dark theme switcher', value: 'themeSwitch', checked: true },
-        { name: '💾 Prisma database setup', value: 'prisma', checked: false },
+        { name: '💾 MongoDB + Prisma setup', value: 'prisma', checked: false },
         { name: '🔐 Authentication (Next-Auth)', value: 'auth', checked: false },
         { name: '📄 Add documentation files', value: 'docs', checked: false },
         { name: '📱 Add responsive layouts', value: 'responsive', checked: false }
@@ -461,27 +461,41 @@ async function run() {
   let selectedComponents = ['button', 'card', 'sheet', 'dropdown-menu', 'tabs', 'input', 'label'];
   
   if (features.installComponents) {
-    // Create an array of all available components
-    const allComponents = [
+    // Create arrays of available components - separated by type
+    const shadcnComponents = [
       'accordion', 'alert', 'alert-dialog', 'aspect-ratio', 'avatar', 'badge', 
-      'button', 'calendar', 'card', 'carousel', 'checkbox', 'collapsible', 
-      'command', 'context-menu', 'dialog', 'drawer', 'dropdown-menu', 'form', 
-      'hover-card', 'input', 'label', 'menubar', 'navigation-menu', 'pagination', 
-      'popover', 'progress', 'radio-group', 'scroll-area', 'select', 'separator', 
-      'sheet', 'skeleton', 'slider', 'switch', 'table', 'tabs', 'textarea', 
+      'breadcrumb', 'button', 'calendar', 'card', 'carousel', 'chart', 'checkbox', 
+      'collapsible', 'combobox', 'command', 'context-menu', 'data-table', 'date-picker', 
+      'dialog', 'drawer', 'dropdown-menu', 'form', 'hover-card', 'input', 'input-otp', 
+      'label', 'menubar', 'navigation-menu', 'pagination', 'popover', 'progress', 
+      'radio-group', 'resizable', 'scroll-area', 'select', 'separator', 'sheet', 
+      'sidebar', 'skeleton', 'slider', 'sonner', 'switch', 'table', 'tabs', 'textarea', 
       'toast', 'toggle', 'toggle-group', 'tooltip'
     ];
     
-    // First, ask if the user wants to select all components
+    const customComponents = [
+      'file-uploader', 'video-player', 'timeline', 'rating', 'file-tree', 'copy-button'
+    ];
+    
+    // Combine all components
+    const allComponents = [...shadcnComponents, ...customComponents];
+    
+    // Define essential components with additional important ones
+    const essentialComponents = [
+      'button', 'card', 'dialog', 'dropdown-menu', 'form', 'input', 'label', 
+      'sheet', 'tabs', 'separator', 'toast', 'accordion', 'slider'
+    ];
+    
+    // First, ask if the user wants to select components
     const { componentSelection } = await inquirer.prompt([
       {
         type: 'list',
         name: 'componentSelection',
-        message: 'How would you like to select components?',
+        message: 'How would you like to select Components?',
         choices: [
           { name: '🔍 Custom selection (choose specific components)', value: 'custom' },
           { name: '✅ Select all components', value: 'all' },
-          { name: '🧰 Essential components only (button, card, dialog, input, form)', value: 'essential' }
+          { name: '🧰 Essential components only (common UI elements)', value: 'essential' }
         ]
       }
     ]);
@@ -490,49 +504,59 @@ async function run() {
       selectedComponents = allComponents;
       console.log(chalk.green(`\n✓ Selected all ${selectedComponents.length} components\n`));
     } else if (componentSelection === 'essential') {
-      selectedComponents = ['button', 'card', 'dialog', 'input', 'form'];
+      selectedComponents = essentialComponents;
       console.log(chalk.green(`\n✓ Selected essential components: ${selectedComponents.join(', ')}\n`));
     } else {
-      // Show the component selection dialog for custom selection
+      // Show the component selection dialog for custom selection with grouping
       const componentPrompt = await inquirer.prompt([
         {
-          type: 'search-checkbox',
+          type: 'checkbox', // Change from search-checkbox to regular checkbox
           name: 'components',
-          message: 'Select UI components to install:',
+          message: 'Select components to install:',
           choices: [
+            new inquirer.Separator('--- UI Components ---'),
             { name: 'Accordion', value: 'accordion' },
             { name: 'Alert', value: 'alert' },
             { name: 'Alert Dialog', value: 'alert-dialog' },
             { name: 'Aspect Ratio', value: 'aspect-ratio' },
             { name: 'Avatar', value: 'avatar' },
             { name: 'Badge', value: 'badge' },
+            { name: 'Breadcrumb', value: 'breadcrumb' },
             { name: 'Button', value: 'button', checked: true },
             { name: 'Calendar', value: 'calendar' },
             { name: 'Card', value: 'card', checked: true },
             { name: 'Carousel', value: 'carousel' },
+            { name: 'Chart', value: 'chart' },
             { name: 'Checkbox', value: 'checkbox' },
             { name: 'Collapsible', value: 'collapsible' },
+            { name: 'Combobox', value: 'combobox' },
             { name: 'Command', value: 'command' },
             { name: 'Context Menu', value: 'context-menu' },
-            { name: 'Dialog', value: 'dialog' },
+            { name: 'Data Table', value: 'data-table' },
+            { name: 'Date Picker', value: 'date-picker' },
+            { name: 'Dialog', value: 'dialog', checked: true },
             { name: 'Drawer', value: 'drawer' },
-            { name: 'Dropdown Menu', value: 'dropdown-menu' },
-            { name: 'Form', value: 'form' },
+            { name: 'Dropdown Menu', value: 'dropdown-menu', checked: true },
+            { name: 'Form', value: 'form', checked: true },
             { name: 'Hover Card', value: 'hover-card' },
-            { name: 'Input', value: 'input' },
-            { name: 'Label', value: 'label' },
+            { name: 'Input', value: 'input', checked: true },
+            { name: 'Input OTP', value: 'input-otp' },
+            { name: 'Label', value: 'label', checked: true },
             { name: 'Menubar', value: 'menubar' },
             { name: 'Navigation Menu', value: 'navigation-menu' },
             { name: 'Pagination', value: 'pagination' },
             { name: 'Popover', value: 'popover' },
             { name: 'Progress', value: 'progress' },
             { name: 'Radio Group', value: 'radio-group' },
+            { name: 'Resizable', value: 'resizable' },
             { name: 'Scroll Area', value: 'scroll-area' },
             { name: 'Select', value: 'select' },
             { name: 'Separator', value: 'separator' },
             { name: 'Sheet', value: 'sheet' },
+            { name: 'Sidebar', value: 'sidebar' },
             { name: 'Skeleton', value: 'skeleton' },
             { name: 'Slider', value: 'slider' },
+            { name: 'Sonner', value: 'sonner' },
             { name: 'Switch', value: 'switch' },
             { name: 'Table', value: 'table' },
             { name: 'Tabs', value: 'tabs' },
@@ -540,9 +564,16 @@ async function run() {
             { name: 'Toast', value: 'toast' },
             { name: 'Toggle', value: 'toggle' },
             { name: 'Toggle Group', value: 'toggle-group' },
-            { name: 'Tooltip', value: 'tooltip' }
+            { name: 'Tooltip', value: 'tooltip' },
+            new inquirer.Separator('--- Custom Components ---'),
+            { name: 'File Uploader (Drag & Drop)', value: 'file-uploader', checked: true },
+            { name: 'Video Player Interface', value: 'video-player' },
+            { name: 'Timeline', value: 'timeline' },
+            { name: 'Rating/Stars Input', value: 'rating' },
+            { name: 'File Tree', value: 'file-tree' },
+            { name: 'Copy to Clipboard Button', value: 'copy-button', checked: true }
           ],
-          pageSize: 15
+          pageSize: 20
         }
       ]);
       
@@ -864,9 +895,15 @@ async function run() {
         await fs.ensureDir(path.join(appDir, 'public'));
         
         // Create a basic page.tsx
-        const pageContent = templates.pageContent(appName);
+        // Create a basic page.tsx - use showcase page if components are selected
+        let pageTemplate;
+        if (features.installComponents) {
+          pageTemplate = templates.componentsShowcasePage;
+        } else {
+          pageTemplate = templates.pageContent(appName);
+        }
         
-        await fs.writeFile(path.join(appDir, 'app', 'page.tsx'), pageContent);
+        await fs.writeFile(path.join(appDir, 'app', 'page.tsx'), pageTemplate);
         
         // Create a basic layout.tsx
         const layoutContent = templates.layoutContent;
@@ -891,10 +928,6 @@ async function run() {
         
         await fs.ensureDir(path.join(appDir, 'app'));
         await fs.writeFile(path.join(appDir, 'app', 'globals.css'), globalCssContent);
-        
-        // Create .gitignore file
-        const gitignoreContent = templates.gitignoreContent;
-        await fs.writeFile(path.join(appDir, '.gitignore'), gitignoreContent);
         
         createAppSpinner.succeed(chalk.green(`Created basic Next.js app structure manually`));
         
@@ -984,9 +1017,15 @@ async function run() {
           await fs.ensureDir(path.join(appDir, 'public'));
           
           // Create a basic page.tsx
-          const pageContent = templates.pageContent(appName);
+          // Create a basic page.tsx - use showcase page if components are selected
+          let pageTemplate;
+          if (features.installComponents) {
+            pageTemplate = templates.componentsShowcasePage;
+          } else {
+            pageTemplate = templates.pageContent(appName);
+          }
           
-          await fs.writeFile(path.join(appDir, 'app', 'page.tsx'), pageContent);
+          await fs.writeFile(path.join(appDir, 'app', 'page.tsx'), pageTemplate);
           
           // Create a basic layout.tsx
           const layoutContent = templates.layoutContent;
@@ -1011,10 +1050,6 @@ async function run() {
           
           await fs.ensureDir(path.join(appDir, 'app'));
           await fs.writeFile(path.join(appDir, 'app', 'globals.css'), globalCssContent);
-          
-          // Create .gitignore file
-          const gitignoreContent = templates.gitignoreContent;
-          await fs.writeFile(path.join(appDir, '.gitignore'), gitignoreContent);
           
           createAppSpinner.succeed(chalk.green(`Created basic Next.js app structure manually`));
           
@@ -1138,139 +1173,270 @@ async function run() {
     const installCmd = packageManager;
     let installOutput = '';
     
-    try {
-      // Show a box to indicate installation has started
-      console.log(boxen(
-        `${chalk.bold(runGradient('Installing Dependencies'))}\n\n` +
-        `${chalk.dim('Installing packages with')} ${chalk.cyan(packageManager)}\n` +
-        `${chalk.dim('This may take a moment...')}`,
-        { 
-          padding: 1, 
-          margin: 1, 
-          borderStyle: 'round', 
-          borderColor: currentTheme.secondary,
-          title: '📦 Dependencies',
-          titleAlignment: 'center'
-        }
-      ));
-      
-      // Install core dependencies first
-      const coreDeps = [
-        "class-variance-authority",
-        "clsx",
-        "tailwind-merge",
-        "lucide-react",
-        "tailwindcss-animate"
-      ];
-      
-      const addCmd = packageManager === "npm" ? "install" : "add";
-      await execa(installCmd, [addCmd, ...coreDeps], { stdio: "inherit" });
-      
-      // Try installing with the selected package manager
-      const mainDepsPromise = execa(installCmd, 
-        packageManager === "pnpm" ? ["install", "--prefer-offline"] : 
-        packageManager === "yarn" ? ["install", "--prefer-offline"] :
-        ["install"], 
-        { stdio: "pipe" }  // Capture the output instead of inheriting stdio
-      );
-      
-      // Capture the installation output
-      mainDepsPromise.stdout.on('data', (data) => {
-        installOutput += data.toString();
-      });
-      
-      mainDepsPromise.stderr.on('data', (data) => {
-        installOutput += data.toString();
-      });
-      
-      await mainDepsPromise;
-      
-      // Install lucide-react separately (no longer needed as it's in coreDeps)
-      // const lucidePromise = execa(installCmd, [addCmd, "lucide-react"], { stdio: "pipe" });
-      
-      // lucidePromise.stdout.on('data', (data) => {
-      //   installOutput += data.toString();
-      // });
-      
-      // lucidePromise.stderr.on('data', (data) => {
-      //   installOutput += data.toString();
-      // });
-      
-      // await lucidePromise;
-      
-      // Display the installation results in a boxen box
-      console.log(boxen(
-        `${chalk.bold(runGradient('Dependency Installation Complete'))}\n\n` +
-        `${chalk.green('✓')} ${chalk.bold('Installed with:')} ${chalk.cyan(packageManager)}\n` +
-        `${chalk.green('✓')} ${chalk.bold('Core dependencies:')} next, react, react-dom\n` +
-        `${chalk.green('✓')} ${chalk.bold('Dev dependencies:')} typescript, tailwindcss, etc.\n` +
-        `${chalk.green('✓')} ${chalk.bold('UI dependencies:')} lucide-react\n`,
-        { 
-          padding: 1, 
-          margin: 1, 
-          borderStyle: 'round', 
-          borderColor: 'green',
-          title: '✅ Installation Success',
-          titleAlignment: 'center'
-        }
-      ));
-      
-    } catch (installError) {
-      // If pnpm fails, fallback to npm
-      if (packageManager === "pnpm") {
-        spinner.warn(chalk.yellow("pnpm installation failed, falling back to npm..."));
+    // Fast mode implementation
+    if (features.fastMode) {
+      try {
+        // Enable performance optimizations
+        const { 
+          installDependenciesConcurrently,
+          installShadcnComponentsBatch,
+          setupFilesOptimized
+        } = await optimizeSetup(packageManager);
         
-        try {
-          // Capture npm installation output
-          const npmInstallPromise = execa("npm", ["install"], { stdio: "pipe" });
-          npmInstallPromise.stdout.on('data', (data) => {
-            installOutput += data.toString();
-          });
+        // Show a box to indicate fast mode installation
+        console.log(boxen(
+          `${chalk.bold(runGradient('Fast Mode Enabled'))}\n\n` +
+          `${chalk.dim('Installing packages with')} ${chalk.cyan(packageManager)} ${chalk.dim('(10x faster)')}\n` +
+          `${chalk.dim('Optimized for performance...')}`,
+          { 
+            padding: 1, 
+            margin: 1, 
+            borderStyle: 'round', 
+            borderColor: currentTheme.secondary,
+            title: '⚡ Fast Mode',
+            titleAlignment: 'center'
+          }
+        ));
+        
+        // Use optimized functions for installation
+        updateProgress(`Installing dependencies (fast mode)...`);
+        await installDependenciesConcurrently(['react', 'react-dom', 'next', 'next-themes']);
+        spinner.succeed(chalk[currentTheme.accent](`Core dependencies installed`));
+        
+        // Enhanced component installation if needed
+        if (features.installComponents && selectedComponents && selectedComponents.length > 0) {
+          updateProgress(`Installing Components System (fast mode)...`);
           
-          npmInstallPromise.stderr.on('data', (data) => {
-            installOutput += data.toString();
-          });
-          
-          await npmInstallPromise;
-          
-          const npmLucidePromise = execa("npm", ["install", "lucide-react"], { stdio: "pipe" });
-          npmLucidePromise.stdout.on('data', (data) => {
-            installOutput += data.toString();
-          });
-          
-          npmLucidePromise.stderr.on('data', (data) => {
-            installOutput += data.toString();
-          });
-          
-          await npmLucidePromise;
-          
-          packageManager = "npm"; // Switch to npm for the rest of the setup
-          
-          // Display the fallback installation results
           console.log(boxen(
-            `${chalk.bold(runGradient('Dependency Installation Complete'))}\n\n` +
-            `${chalk.yellow('!')} ${chalk.bold('Fallback to:')} ${chalk.cyan('npm')} (pnpm failed)\n` +
-            `${chalk.green('✓')} ${chalk.bold('Core dependencies:')} next, react, react-dom\n` +
-            `${chalk.green('✓')} ${chalk.bold('Dev dependencies:')} typescript, tailwindcss, etc.\n` +
-            `${chalk.green('✓')} ${chalk.bold('UI dependencies:')} lucide-react\n`,
+            `${chalk.bold(runGradient('Installing Components'))}\n\n` +
+            `${chalk.dim('Installing:')} ${chalk.cyan(selectedComponents.length)} ${chalk.dim('components')}\n` +
+            `${chalk.dim('Method:')} ${chalk.cyan('Optimized batch installation')}`,
             { 
               padding: 1, 
               margin: 1, 
               borderStyle: 'round', 
-              borderColor: 'yellow',
-              title: '✅ Installation Success (Fallback)',
+              borderColor: currentTheme.secondary,
+              title: '🧩 Components',
               titleAlignment: 'center'
             }
           ));
           
-        } catch (npmError) {
-          throw new Error(`Failed to install dependencies with pnpm and npm. Please try again later.\nOriginal error: ${installError.message}`);
+          // First make sure lib and components directories exist
+          await fs.ensureDir('lib');
+          await fs.ensureDir('components/ui');
+          
+          // Create utils.ts if it doesn't exist
+          if (!fs.existsSync('lib/utils.ts')) {
+            const utilsContent = templates.utilsContent;
+            await fs.writeFile('lib/utils.ts', utilsContent);
+          }
+          
+          // Create components.json configuration
+          const componentsJson = {
+            "$schema": "https://ui.shadcn.com/schema.json",
+            "style": "default",
+            "rsc": true,
+            "tsx": true,
+            "tailwind": {
+              "config": "tailwind.config.ts",
+              "css": "app/globals.css",
+              "baseColor": "slate",
+              "cssVariables": true
+            },
+            "aliases": {
+              "components": "@/components",
+              "utils": "@/lib/utils"
+            }
+          };
+          
+          await fs.writeFile('components.json', JSON.stringify(componentsJson, null, 2));
+          
+          // Install components using the optimized batch function
+          await installShadcnComponentsBatch(selectedComponents);
+          spinner.succeed(chalk[currentTheme.accent](`Components installed successfully`));
         }
-      } else {
-        // Re-throw the error for other package managers
-        throw installError;
+        
+        // Display the fast installation results
+        console.log(boxen(
+          `${chalk.bold(runGradient('Fast Mode Installation Complete'))}\n\n` +
+          `${chalk.green('✓')} ${chalk.bold('Installed with:')} ${chalk.cyan(packageManager)} (optimized)\n` +
+          `${chalk.green('✓')} ${chalk.bold('Core dependencies:')} next, react, react-dom\n` +
+          `${chalk.green('✓')} ${chalk.bold('UI dependencies:')} installed in batches\n`,
+          { 
+            padding: 1, 
+            margin: 1, 
+            borderStyle: 'round', 
+            borderColor: 'green',
+            title: '✅ Fast Installation Success',
+            titleAlignment: 'center'
+          }
+        ));
+        
+        spinner.succeed(chalk[currentTheme.accent](`${steps[1]} complete (fast mode)`));
+        
+        // Skip to step 3 since we've handled dependencies
+        updateProgress(`${steps[2]}...`);
+        
+      } catch (fastModeError) {
+        spinner.warn(chalk.yellow(`Fast mode installation failed, falling back to standard installation: ${fastModeError.message}`));
+        // Continue with standard installation below
+      }
+    } 
+    
+    // Only run standard installation if fast mode is disabled or failed
+    if (!features.fastMode || installOutput === '') {
+      try {
+        // Show a box to indicate installation has started
+        console.log(boxen(
+          `${chalk.bold(runGradient('Installing Dependencies'))}\n\n` +
+          `${chalk.dim('Installing packages with')} ${chalk.cyan(packageManager)}\n` +
+          `${chalk.dim('This may take a moment...')}`,
+          { 
+            padding: 1, 
+            margin: 1, 
+            borderStyle: 'round', 
+            borderColor: currentTheme.secondary,
+            title: '📦 Dependencies',
+            titleAlignment: 'center'
+          }
+        ));
+        
+        // ... rest of existing code ...
+        
+        // [The rest of the original installation code follows here]
+        // Install core dependencies first
+        const coreDeps = [
+          "class-variance-authority",
+          "clsx",
+          "tailwind-merge",
+          "lucide-react",
+          "tailwindcss-animate"
+        ];
+        
+        const addCmd = packageManager === "npm" ? "install" : "add";
+        await execa(installCmd, [addCmd, ...coreDeps], { stdio: "inherit" });
+        
+        // Try installing with the selected package manager
+        const mainDepsPromise = execa(installCmd, 
+          packageManager === "pnpm" ? ["install", "--prefer-offline"] : 
+          packageManager === "yarn" ? ["install", "--prefer-offline"] :
+          ["install"], 
+          { stdio: "pipe" }  // Capture the output instead of inheriting stdio
+        );
+        
+        // Capture the installation output
+        mainDepsPromise.stdout.on('data', (data) => {
+          installOutput += data.toString();
+        });
+        
+        mainDepsPromise.stderr.on('data', (data) => {
+          installOutput += data.toString();
+        });
+        
+        await mainDepsPromise;
+        
+        // Display the installation results in a boxen box
+        console.log(boxen(
+          `${chalk.bold(runGradient('Dependency Installation Complete'))}\n\n` +
+          `${chalk.green('✓')} ${chalk.bold('Installed with:')} ${chalk.cyan(packageManager)}\n` +
+          `${chalk.green('✓')} ${chalk.bold('Core dependencies:')} next, react, react-dom\n` +
+          `${chalk.green('✓')} ${chalk.bold('Dev dependencies:')} typescript, tailwindcss, etc.\n` +
+          `${chalk.green('✓')} ${chalk.bold('UI dependencies:')} lucide-react\n`,
+          { 
+            padding: 1, 
+            margin: 1, 
+            borderStyle: 'round', 
+            borderColor: 'green',
+            title: '✅ Installation Success',
+            titleAlignment: 'center'
+          }
+        ));
+      } catch (installError) {
+        // ... existing error handling code ...
+        // If pnpm fails, fallback to npm
+        if (packageManager === "pnpm") {
+          spinner.warn(chalk.yellow("pnpm installation failed, falling back to npm..."));
+          
+          try {
+            // Capture npm installation output
+            const npmInstallPromise = execa("npm", ["install"], { stdio: "pipe" });
+            npmInstallPromise.stdout.on('data', (data) => {
+              installOutput += data.toString();
+            });
+            
+            npmInstallPromise.stderr.on('data', (data) => {
+              installOutput += data.toString();
+            });
+            
+            await npmInstallPromise;
+            
+            const npmLucidePromise = execa("npm", ["install", "lucide-react"], { stdio: "pipe" });
+            npmLucidePromise.stdout.on('data', (data) => {
+              installOutput += data.toString();
+            });
+            
+            npmLucidePromise.stderr.on('data', (data) => {
+              installOutput += data.toString();
+            });
+            
+            await npmLucidePromise;
+            
+            packageManager = "npm"; // Switch to npm for the rest of the setup
+            
+            // Display the fallback installation results
+            console.log(boxen(
+              `${chalk.bold(runGradient('Dependency Installation Complete'))}\n\n` +
+              `${chalk.yellow('!')} ${chalk.bold('Fallback to:')} ${chalk.cyan('npm')} (pnpm failed)\n` +
+              `${chalk.green('✓')} ${chalk.bold('Core dependencies:')} next, react, react-dom\n` +
+              `${chalk.green('✓')} ${chalk.bold('Dev dependencies:')} typescript, tailwindcss, etc.\n` +
+              `${chalk.green('✓')} ${chalk.bold('UI dependencies:')} lucide-react\n`,
+              { 
+                padding: 1, 
+                margin: 1, 
+                borderStyle: 'round', 
+                borderColor: 'yellow',
+                title: '✅ Installation Success (Fallback)',
+                titleAlignment: 'center'
+              }
+            ));
+            
+          } catch (npmError) {
+            throw new Error(`Failed to install dependencies with pnpm and npm. Please try again later.\nOriginal error: ${installError.message}`);
+          }
+        } else {
+          // Re-throw the error for other package managers
+          throw installError;
+        }
       }
     }
+    
+    // ... rest of the code ...
+    
+    // After Step 5 (around line 1460), add:
+    
+    // Step 6 (optional): Setup Next Auth with MongoDB
+    if (features.auth) {
+      updateProgress(`Setting up NextAuth with MongoDB...`);
+      await setupNextAuth(appDir);
+      spinner.succeed(chalk[currentTheme.accent](`NextAuth setup complete`));
+    }
+    
+    // Step 7 (optional): Setup Prisma with MongoDB
+    if (features.prisma) {
+      updateProgress(`Setting up Prisma with MongoDB...`);
+      await setupPrisma(appDir);
+      spinner.succeed(chalk[currentTheme.accent](`Prisma setup complete`));
+      
+      // Create .env file with all required variables including DB_URL
+      updateProgress(`Creating MongoDB environment variables...`);
+      await createEnvFile(appDir);
+      spinner.succeed(chalk[currentTheme.accent](`MongoDB environment files created`));
+    }
+    
+    // Step 8: Fix TypeScript errors for compatibility
+    updateProgress(`Fixing TypeScript configurations...`);
+    await fixTypeScriptErrors(appDir);
+    spinner.succeed(chalk[currentTheme.accent](`TypeScript configurations fixed`));
     
     spinner.succeed(chalk[currentTheme.accent](`${steps[1]} complete`));
 
@@ -1278,8 +1444,8 @@ async function run() {
     updateProgress(`${steps[2]}...`);
     
     try {
-      // Use the official shadcn CLI initialization
-      spinner.text = chalk[currentTheme.secondary]('Initializing shadcn UI...');
+      // Use the official shadcn CLI initialization for the core UI components
+      spinner.text = chalk[currentTheme.secondary]('Initializing Components System...');
       
       // Create a components.json directly instead of running interactive prompt
       const componentsJson = {
@@ -1328,7 +1494,7 @@ async function run() {
             margin: 1, 
             borderStyle: 'round', 
             borderColor: currentTheme.secondary,
-            title: '🧩 Components',
+            title: '🧩 Components System',
             titleAlignment: 'center'
           }
         ));
@@ -1395,13 +1561,13 @@ async function run() {
             margin: 1, 
             borderStyle: 'round', 
             borderColor: failedComponents.length > 0 ? 'yellow' : 'green',
-            title: '📋 Summary',
+            title: '📋 Components System Summary',
             titleAlignment: 'center'
           }
         ));
       }
     } catch (err) {
-      spinner.warn(chalk.yellow(`Error setting up shadcn UI: ${err.message}. Will try to continue anyway.`));
+      spinner.warn(chalk.yellow(`Error setting up Components System: ${err.message}. Will try to continue anyway.`));
     }
     
     spinner.succeed(chalk[currentTheme.accent](`${steps[2]} complete`));
@@ -1421,27 +1587,27 @@ async function run() {
       updateProgress(`${steps[4]}...`);
       
       try {
-        // Create the ThemeProvider component
-        const themeProviderDir = path.join(process.cwd(), 'components/theme');
-        fs.mkdirSync(themeProviderDir, { recursive: true });
-        
-        // Create theme-provider.tsx directly
-        const themeProviderPath = path.join(themeProviderDir, 'theme-provider.tsx');
+      // Create the ThemeProvider component
+      const themeProviderDir = path.join(process.cwd(), 'components/theme');
+      fs.mkdirSync(themeProviderDir, { recursive: true });
+      
+      // Create theme-provider.tsx directly
+      const themeProviderPath = path.join(themeProviderDir, 'theme-provider.tsx');
         const themeProviderContent = templates.themeProviderContent;
         await fs.writeFile(themeProviderPath, themeProviderContent);
-        
-        // Create ThemeToggle component directly
-        const themeTogglePath = path.join(themeProviderDir, 'theme-toggle.tsx');
+
+      // Create ThemeToggle component directly
+      const themeTogglePath = path.join(themeProviderDir, 'theme-toggle.tsx');
         const themeToggleContent = templates.themeToggleContent;
-        await fs.writeFile(themeTogglePath, themeToggleContent);
+      await fs.writeFile(themeTogglePath, themeToggleContent);
+      
+      // Update the layout.tsx file to include the ThemeProvider
+      const layoutPath = path.join(process.cwd(), 'app/layout.tsx');
+      try {
+        let layoutContent = await fs.readFile(layoutPath, 'utf8');
         
-        // Update the layout.tsx file to include the ThemeProvider
-        const layoutPath = path.join(process.cwd(), 'app/layout.tsx');
-        try {
-          let layoutContent = await fs.readFile(layoutPath, 'utf8');
-          
           // Add the ThemeProvider import if it doesn't exist
-          if (!layoutContent.includes('import { ThemeProvider }')) {
+        if (!layoutContent.includes('import { ThemeProvider }')) {
             layoutContent = `import { ThemeProvider } from "@/components/theme/theme-provider"\n${layoutContent}`;
           }
           
@@ -1466,7 +1632,7 @@ async function run() {
               
               // Replace the body tag in the layout content
               layoutContent = layoutContent.replace(bodyPattern, newBodyTag);
-            } else {
+          } else {
               // If we can't find the body tag with regex, just insert at a safe position
               spinner.warn(chalk.yellow("Could not find body tag in layout.tsx. Theme provider might not be properly inserted."));
             }
@@ -1475,22 +1641,22 @@ async function run() {
           await fs.writeFile(layoutPath, layoutContent);
           
           // Show success message
-          console.log(boxen(
+        console.log(boxen(
             `${chalk.bold(gradient(['#2E3192', '#1BFFFF'])('Theme Provider Added'))}\n\n` +
             `${chalk.green('✓')} Updated layout.tsx with ThemeProvider\n` +
             `${chalk.green('✓')} Dark mode is now available\n` +
             `${chalk.green('✓')} Theme will respect system preferences\n` +
             `${chalk.green('✓')} Use ThemeToggle component to allow users to switch themes`,
-            { 
-              padding: 1, 
-              margin: 1, 
-              borderStyle: 'round', 
+          { 
+            padding: 1, 
+            margin: 1, 
+            borderStyle: 'round', 
               borderColor: 'blue',
               title: '🌙 Theme Ready',
-              titleAlignment: 'center'
-            }
-          ));
-        } catch (error) {
+            titleAlignment: 'center'
+          }
+        ));
+      } catch (error) {
           spinner.warn(chalk.yellow(`Error updating layout file with ThemeProvider: ${error.message}`));
         }
         
@@ -1505,15 +1671,15 @@ async function run() {
         spinner.fail(chalk.red(`Failed to set up theme switcher: ${error.message}`));
         console.error(boxen(
           chalk.red(`Error setting up theme switcher:\n\n${error.message}`),
-          { 
-            padding: 1, 
-            margin: 1, 
-            borderStyle: 'round', 
+        { 
+          padding: 1, 
+          margin: 1, 
+          borderStyle: 'round', 
             borderColor: 'red',
             title: '❌ Error',
-            titleAlignment: 'center'
-          }
-        ));
+          titleAlignment: 'center'
+        }
+      ));
       }
     }
 
@@ -1595,21 +1761,21 @@ export function AuthProvider({ children }) {
         await fs.writeFile(layoutPath, layoutContent);
         
         // Show success message
-        console.log(boxen(
+      console.log(boxen(
           `${chalk.bold(gradient(['#42a5f5', '#1976d2'])('Auth Provider Added'))}\n\n` +
           `${chalk.green('✓')} Updated layout.tsx with AuthProvider\n` +
           `${chalk.green('✓')} Next-Auth is now available\n` +
           `${chalk.green('✓')} Session management is ready\n` +
           `${chalk.green('✓')} See docs for login setup details`,
-          { 
-            padding: 1, 
-            margin: 1, 
-            borderStyle: 'round', 
+        { 
+          padding: 1, 
+          margin: 1, 
+          borderStyle: 'round', 
             borderColor: 'blue',
             title: '🔒 Auth Ready',
-            titleAlignment: 'center'
-          }
-        ));
+          titleAlignment: 'center'
+        }
+      ));
       } catch (error) {
         spinner.warn(chalk.yellow(`Error updating layout file with AuthProvider: ${error.message}`));
       }
@@ -1818,7 +1984,7 @@ export function AuthProvider({ children }) {
                   });
                   serverStarted = true;
                   break;
-                } catch (error) {
+  } catch (error) {
                   continue;
                 }
               }
@@ -2124,6 +2290,1324 @@ function startDevServer(dirPath, command) {
   }
   
   return serverStarted;
+}
+
+// Performance optimizations for faster installations
+async function optimizeSetup(packageManager) {
+  // 1. Use concurrent downloads for faster dependency installation
+  const installDependenciesConcurrently = async (dependencies, type = 'prod') => {
+    const command = packageManager === 'npm' ? 'npm' : packageManager;
+    const args = [
+      packageManager === 'npm' ? 'install' : 'add',
+      ...(type === 'dev' ? ['-D'] : []),
+      ...dependencies
+    ];
+    
+    // Use execa with increased buffer size and concurrency
+    return execa(command, args, { 
+      buffer: true,
+      preferLocal: true,
+      stdout: 'inherit',
+      maxBuffer: 10 * 1024 * 1024,  // 10MB buffer 
+      env: { 
+        ...process.env, 
+        // Force non-interactive mode and skip auto-install prompts
+        CI: "true",
+        ADBLOCK: "1", 
+        // Skip compliance checks for faster installs
+        DISABLE_OPENCOLLECTIVE: "1", 
+        DISABLE_NOTIFIER: "1",
+        NEXT_TELEMETRY_DISABLED: "1",
+        NPM_CONFIG_FUND: "0"
+      }
+    });
+  };
+  
+  // 2. Use batch component installation for Components system
+  const installShadcnComponentsBatch = async (components) => {
+    // Separate shadcn/ui components from custom components
+    const shadcnComponents = components.filter(comp => 
+      !['file-uploader', 'video-player', 'timeline', 'rating', 'file-tree', 'copy-button'].includes(comp)
+    );
+    
+    const customComponents = components.filter(comp => 
+      ['file-uploader', 'video-player', 'timeline', 'rating', 'file-tree', 'copy-button'].includes(comp)
+    );
+    
+    // Process in parallel for maximum speed
+    const promises = [];
+    
+    // Install shadcn/ui components in batches
+    if (shadcnComponents.length > 0) {
+      // Install in batches of 5 for better performance
+      const batchSize = 5;
+      const batches = [];
+      
+      for (let i = 0; i < shadcnComponents.length; i += batchSize) {
+        batches.push(shadcnComponents.slice(i, i + batchSize));
+      }
+      
+      // Install batches concurrently
+      for (const batch of batches) {
+        try {
+          await execa('npx', [
+            'shadcn@latest', 'add', ...batch, 
+            '--yes', // Skip confirmation
+            '--overwrite' // Overwrite existing components
+          ], {
+            env: { 
+              ...process.env, 
+              FORCE_COLOR: "1", 
+              CI: "true", 
+              NEXT_SHADCN_SKIP_QUESTIONS: "1"
+            }
+          });
+        } catch (error) {
+          // Try one by one if batch fails
+          for (const component of batch) {
+            try {
+              await execa('npx', [
+                'shadcn@latest', 'add', component, 
+                '--yes', 
+                '--overwrite'
+              ], { 
+                env: { 
+                  ...process.env, 
+                  FORCE_COLOR: "1", 
+                  CI: "true",
+                  NEXT_SHADCN_SKIP_QUESTIONS: "1"
+                } 
+              });
+            } catch (componentError) {
+              console.log(chalk.yellow(`Warning: Failed to install component ${component}: ${componentError.message}`));
+            }
+          }
+        }
+      }
+    }
+    
+    // Install custom components
+    if (customComponents.length > 0) {
+      for (const comp of customComponents) {
+        // Create the component file
+        const componentContent = getCustomComponentTemplate(comp);
+        const componentDir = path.join(process.cwd(), 'components');
+        
+        // Create directory if it doesn't exist
+        await fs.ensureDir(componentDir);
+        
+        // Write component file
+        const componentPath = path.join(componentDir, `${comp}.tsx`);
+        await fs.writeFile(componentPath, componentContent);
+      }
+      
+      // Install required dependencies for custom components
+      if (customComponents.includes('file-uploader')) {
+        // Install react-dropzone for the file uploader
+        const depCommand = packageManager === 'npm' ? 'install' : 'add';
+        try {
+          await execa(packageManager, [depCommand, 'react-dropzone']);
+        } catch (error) {
+          console.log(chalk.yellow(`Warning: Failed to install react-dropzone: ${error.message}`));
+        }
+      }
+    }
+    
+    // If we're installing components, also update the main page.tsx to showcase them
+    const showcasePath = path.join(process.cwd(), 'app', 'page.tsx');
+    try {
+      await fs.writeFile(showcasePath, templates.componentsShowcasePage);
+    } catch (error) {
+      console.log(chalk.yellow(`Warning: Failed to update page.tsx: ${error.message}`));
+    }
+  };
+  
+  // 3. Function to get custom component templates
+  const getCustomComponentTemplate = (componentName) => {
+    const templates = {
+      'file-uploader': `"use client"
+
+import * as React from "react"
+import { useDropzone } from "react-dropzone"
+import { UploadCloud, File, X, Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+type FileUploaderProps = {
+  onFilesChange?: (files: File[]) => void;
+  maxFiles?: number;
+  maxSize?: number; // in bytes
+  accept?: Record<string, string[]>;
+  className?: string;
+  disabled?: boolean;
+}
+
+type UploadedFile = File & {
+  preview?: string;
+  status?: 'uploading' | 'error' | 'success';
+  progress?: number;
+  id: string;
+}
+
+export function FileUploader({
+  onFilesChange,
+  maxFiles = 5,
+  maxSize = 5 * 1024 * 1024, // 5MB default
+  accept,
+  className,
+  disabled = false,
+}: FileUploaderProps) {
+  const [files, setFiles] = React.useState<UploadedFile[]>([])
+  
+  const onDrop = React.useCallback((acceptedFiles: File[]) => {
+    const newFiles = acceptedFiles.map(file => 
+      Object.assign(file, {
+        preview: URL.createObjectURL(file),
+        id: Math.random().toString(36).substring(2),
+        status: 'uploading' as const,
+        progress: 0
+      })
+    )
+    
+    // Simulate upload progress
+    newFiles.forEach(file => {
+      const interval = setInterval(() => {
+        setFiles(prev => 
+          prev.map(f => {
+            if (f.id === file.id) {
+              const progress = Math.min((f.progress || 0) + 10, 100)
+              const status = progress === 100 ? 'success' as const : 'uploading' as const
+              return { ...f, progress, status }
+            }
+            return f
+          })
+        )
+        
+        if ((file.progress || 0) >= 100) {
+          clearInterval(interval)
+        }
+      }, 300)
+    })
+    
+    // Add new files with existing ones (respecting maxFiles)
+    setFiles(prev => {
+      const combined = [...prev, ...newFiles]
+      return combined.slice(0, maxFiles)
+    })
+    
+    // Call the onChange callback
+    onFilesChange?.(acceptedFiles)
+  }, [maxFiles, onFilesChange])
+  
+  const removeFile = React.useCallback((id: string) => {
+    setFiles(prev => {
+      const newFiles = prev.filter(file => file.id !== id)
+      onFilesChange?.(newFiles)
+      return newFiles
+    })
+  }, [onFilesChange])
+  
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
+    onDrop,
+    maxSize,
+    maxFiles,
+    accept,
+    disabled
+  })
+  
+  // Clean up previews on unmount
+  React.useEffect(() => {
+    return () => {
+      files.forEach(file => {
+        if (file.preview) URL.revokeObjectURL(file.preview)
+      })
+    }
+  }, [files])
+  
+  return (
+    <div className={cn("space-y-4", className)}>
+      <div 
+        {...getRootProps()} 
+        className={cn(
+          "border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer",
+          "flex flex-col items-center justify-center gap-2 text-center",
+          isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25",
+          disabled && "opacity-50 cursor-not-allowed"
+        )}
+      >
+        <input {...getInputProps()} />
+        <UploadCloud className="h-10 w-10 text-muted-foreground" />
+        <div>
+          <p className="font-medium text-sm">
+            {isDragActive ? "Drop the files here" : "Drag & drop files here"}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            or click to browse files
+          </p>
+        </div>
+        <div className="text-xs text-muted-foreground mt-2">
+          <p>Max {maxFiles} file{maxFiles !== 1 ? 's' : ''}</p>
+          <p>Up to {(maxSize / (1024 * 1024)).toFixed(0)}MB per file</p>
+        </div>
+      </div>
+      
+      {files.length > 0 && (
+        <div className="space-y-2">
+          {files.map(file => (
+            <div 
+              key={file.id} 
+              className={cn(
+                "flex items-center justify-between p-3 border rounded-md",
+                file.status === 'error' && "border-destructive bg-destructive/5",
+                file.status === 'success' && "border-green-500 bg-green-50 dark:bg-green-950/20"
+              )}
+            >
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="shrink-0">
+                  {file.type.startsWith('image/') && file.preview ? (
+                    <div className="h-10 w-10 rounded-md overflow-hidden border">
+                      <img 
+                        src={file.preview} 
+                        alt={file.name}
+                        className="h-full w-full object-cover"
+                        onLoad={() => { URL.revokeObjectURL(file.preview!) }}
+                      />
+                    </div>
+                  ) : (
+                    <File className="h-10 w-10 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{file.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {(file.size / 1024).toFixed(0)} KB
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 pl-3">
+                {file.status === 'uploading' && (
+                  <div className="w-24">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all duration-300"
+                        style={{ width: \`\${file.progress}%\` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1 text-right">
+                      {file.progress}%
+                    </p>
+                  </div>
+                )}
+                {file.status === 'success' && (
+                  <Check className="h-5 w-5 text-green-500" />
+                )}
+                <button
+                  type="button"
+                  onClick={() => removeFile(file.id)}
+                  className="rounded-md p-1 hover:bg-muted transition-colors"
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}`,
+      'video-player': `"use client"
+
+import * as React from "react"
+import { Play, Pause, Volume2, VolumeX, Maximize, SkipForward, SkipBack } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Slider } from "@/components/ui/slider"
+import { Button } from "@/components/ui/button"
+
+type VideoPlayerProps = {
+  src: string;
+  poster?: string;
+  title?: string;
+  autoPlay?: boolean;
+  className?: string;
+  onPlay?: () => void;
+  onPause?: () => void;
+  onEnded?: () => void;
+}
+
+export function VideoPlayer({
+  src,
+  poster,
+  title,
+  autoPlay = false,
+  className,
+  onPlay,
+  onPause,
+  onEnded,
+}: VideoPlayerProps) {
+  const videoRef = React.useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = React.useState(autoPlay)
+  const [currentTime, setCurrentTime] = React.useState(0)
+  const [duration, setDuration] = React.useState(0)
+  const [volume, setVolume] = React.useState(1)
+  const [muted, setMuted] = React.useState(false)
+  const [showControls, setShowControls] = React.useState(true)
+  const controlsTimeout = React.useRef<NodeJS.Timeout>()
+  
+  // Hide controls after inactivity
+  const resetControlsTimeout = React.useCallback(() => {
+    if (controlsTimeout.current) {
+      clearTimeout(controlsTimeout.current)
+    }
+    
+    setShowControls(true)
+    
+    controlsTimeout.current = setTimeout(() => {
+      if (playing) {
+        setShowControls(false)
+      }
+    }, 3000)
+  }, [playing])
+  
+  // Reset the timeout when playing state changes
+  React.useEffect(() => {
+    resetControlsTimeout()
+  }, [playing, resetControlsTimeout])
+  
+  // Handle video events
+  React.useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+    
+    const onTimeUpdate = () => setCurrentTime(video.currentTime)
+    const onDurationChange = () => setDuration(video.duration)
+    const onVolumeChange = () => {
+      setVolume(video.volume)
+      setMuted(video.muted)
+    }
+    
+    const onVideoPlay = () => {
+      setPlaying(true)
+      onPlay?.()
+    }
+    
+    const onVideoPause = () => {
+      setPlaying(false)
+      onPause?.()
+    }
+    
+    const onVideoEnded = () => {
+      setPlaying(false)
+      onEnded?.()
+    }
+    
+    video.addEventListener("timeupdate", onTimeUpdate)
+    video.addEventListener("durationchange", onDurationChange)
+    video.addEventListener("volumechange", onVolumeChange)
+    video.addEventListener("play", onVideoPlay)
+    video.addEventListener("pause", onVideoPause)
+    video.addEventListener("ended", onVideoEnded)
+    
+    return () => {
+      video.removeEventListener("timeupdate", onTimeUpdate)
+      video.removeEventListener("durationchange", onDurationChange)
+      video.removeEventListener("volumechange", onVolumeChange)
+      video.removeEventListener("play", onVideoPlay)
+      video.removeEventListener("pause", onVideoPause)
+      video.removeEventListener("ended", onVideoEnded)
+      
+      if (controlsTimeout.current) {
+        clearTimeout(controlsTimeout.current)
+      }
+    }
+  }, [onPlay, onPause, onEnded])
+  
+  // Toggle play/pause
+  const togglePlay = () => {
+    if (!videoRef.current) return
+    
+    if (playing) {
+      videoRef.current.pause()
+    } else {
+      videoRef.current.play()
+    }
+  }
+  
+  // Toggle mute
+  const toggleMute = () => {
+    if (!videoRef.current) return
+    videoRef.current.muted = !muted
+  }
+  
+  // Handle seeking
+  const handleSeek = (value: number[]) => {
+    if (!videoRef.current) return
+    videoRef.current.currentTime = value[0]
+  }
+  
+  // Handle volume change
+  const handleVolumeChange = (value: number[]) => {
+    if (!videoRef.current) return
+    videoRef.current.volume = value[0]
+  }
+  
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    if (!videoRef.current) return
+    
+    if (document.fullscreenElement) {
+      document.exitFullscreen()
+    } else {
+      videoRef.current.requestFullscreen()
+    }
+  }
+  
+  // Skip forward/backward
+  const skip = (seconds: number) => {
+    if (!videoRef.current) return
+    videoRef.current.currentTime = Math.min(
+      Math.max(currentTime + seconds, 0),
+      duration
+    )
+  }
+  
+  // Format time as mm:ss
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return \`\${minutes}:\${seconds < 10 ? '0' : ''}\${seconds}\`
+  }
+  
+  return (
+    <div 
+      className={cn(
+        "relative group overflow-hidden rounded-lg bg-black",
+        className
+      )}
+      onMouseMove={resetControlsTimeout}
+    >
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        className="w-full h-full object-contain"
+        autoPlay={autoPlay}
+        onClick={togglePlay}
+      />
+      
+      {/* Video Title */}
+      {title && (
+        <div 
+          className={cn(
+            "absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent",
+            "transition-opacity duration-300",
+            !showControls && "opacity-0"
+          )}
+        >
+          <h3 className="text-white font-medium truncate">{title}</h3>
+        </div>
+      )}
+      
+      {/* Video Controls */}
+      <div 
+        className={cn(
+          "absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent",
+          "flex flex-col gap-2 transition-opacity duration-300",
+          !showControls && "opacity-0"
+        )}
+      >
+        {/* Progress bar */}
+        <div className="flex items-center gap-2">
+          <span className="text-white text-xs">{formatTime(currentTime)}</span>
+          <Slider
+            value={[currentTime]}
+            min={0}
+            max={duration || 100}
+            step={0.01}
+            onValueChange={handleSeek}
+            className="flex-1"
+          />
+          <span className="text-white text-xs">{formatTime(duration)}</span>
+        </div>
+        
+        {/* Controls row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/20"
+              onClick={() => skip(-10)}
+            >
+              <SkipBack className="h-5 w-5" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/20"
+              onClick={togglePlay}
+            >
+              {playing ? (
+                <Pause className="h-5 w-5" />
+              ) : (
+                <Play className="h-5 w-5" />
+              )}
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:bg-white/20"
+              onClick={() => skip(10)}
+            >
+              <SkipForward className="h-5 w-5" />
+            </Button>
+            
+            <div className="flex items-center gap-2 ml-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-white hover:bg-white/20"
+                onClick={toggleMute}
+              >
+                {muted || volume === 0 ? (
+                  <VolumeX className="h-5 w-5" />
+                ) : (
+                  <Volume2 className="h-5 w-5" />
+                )}
+              </Button>
+              
+              <Slider
+                value={[muted ? 0 : volume]}
+                min={0}
+                max={1}
+                step={0.01}
+                onValueChange={handleVolumeChange}
+                className="w-24"
+              />
+            </div>
+          </div>
+          
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/20"
+            onClick={toggleFullscreen}
+          >
+            <Maximize className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}`,
+      'timeline': `"use client"
+
+import * as React from "react"
+import { cn } from "@/lib/utils"
+
+type TimelineProps = React.HTMLAttributes<HTMLDivElement> & {
+  items: TimelineItem[];
+  orientation?: "vertical" | "horizontal";
+  alternating?: boolean;
+}
+
+type TimelineItem = {
+  id: string;
+  title: string;
+  content: React.ReactNode;
+  date?: string;
+  icon?: React.ReactNode;
+  status?: "past" | "current" | "future";
+}
+
+export function Timeline({
+  items,
+  orientation = "vertical",
+  alternating = false,
+  className,
+  ...props
+}: TimelineProps) {
+  return (
+    <div 
+      className={cn(
+        "relative",
+        orientation === "horizontal" && "flex items-start gap-4 overflow-x-auto pb-4",
+        className
+      )}
+      {...props}
+    >
+      {/* Timeline line */}
+      {orientation === "vertical" && (
+        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" />
+      )}
+      {orientation === "horizontal" && (
+        <div className="absolute left-0 right-0 top-4 h-0.5 bg-border" />
+      )}
+      
+      {/* Timeline items */}
+      {items.map((item, index) => (
+        <div
+          key={item.id}
+          className={cn(
+            "relative",
+            orientation === "vertical" && "pl-10 pb-8 last:pb-0",
+            orientation === "horizontal" && "pt-8 pr-8 last:pr-0 min-w-[200px]",
+            alternating && orientation === "vertical" && index % 2 === 1 && "ml-auto pl-0 pr-10 text-right"
+          )}
+        >
+          {/* Item connector & icon */}
+          <div 
+            className={cn(
+              "absolute bg-background",
+              orientation === "vertical" && "left-[9px] top-1 h-6 w-6 -translate-x-1/2 rounded-full border-4 border-background",
+              orientation === "horizontal" && "left-0 top-[9px] h-6 w-6 -translate-y-1/2 rounded-full border-4 border-background",
+              alternating && orientation === "vertical" && index % 2 === 1 && "left-auto right-[9px] translate-x-1/2",
+              item.status === "past" && "bg-primary border-primary",
+              item.status === "current" && "bg-primary border-primary ring-4 ring-primary/20",
+              item.status === "future" && "bg-muted border-muted"
+            )}
+          >
+            {item.icon && (
+              <div className="flex h-full w-full items-center justify-center">
+                {item.icon}
+              </div>
+            )}
+          </div>
+          
+          {/* Item content */}
+          <div className={cn(
+            alternating && orientation === "vertical" && index % 2 === 1 && "flex flex-col items-end"
+          )}>
+            {item.date && (
+              <p className="text-sm text-muted-foreground mb-1">{item.date}</p>
+            )}
+            <h3 className="font-medium">{item.title}</h3>
+            <div className={cn(
+              "mt-2",
+              typeof item.content === "string" && "text-muted-foreground"
+            )}>
+              {item.content}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}`,
+      'rating': `"use client"
+
+import * as React from "react"
+import { Star } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+type RatingProps = {
+  value?: number;
+  max?: number;
+  size?: "sm" | "md" | "lg";
+  readonly?: boolean;
+  onChange?: (value: number) => void;
+  className?: string;
+}
+
+export function Rating({
+  value = 0,
+  max = 5,
+  size = "md",
+  readonly = false,
+  onChange,
+  className
+}: RatingProps) {
+  const [rating, setRating] = React.useState(value)
+  const [hoverRating, setHoverRating] = React.useState(0)
+  
+  // Update internal state when value prop changes
+  React.useEffect(() => {
+    setRating(value)
+  }, [value])
+  
+  // Handle selecting a rating
+  const handleSetRating = (newRating: number) => {
+    if (readonly) return
+    
+    setRating(newRating)
+    onChange?.(newRating)
+  }
+  
+  const starSizes = {
+    sm: "w-4 h-4",
+    md: "w-5 h-5",
+    lg: "w-6 h-6",
+  }
+  
+  return (
+    <div 
+      className={cn(
+        "flex items-center gap-1",
+        !readonly && "cursor-pointer",
+        className
+      )}
+      onMouseLeave={() => setHoverRating(0)}
+    >
+      {Array.from({ length: max }).map((_, i) => {
+        const starValue = i + 1
+        const isFilled = hoverRating ? starValue <= hoverRating : starValue <= rating
+        
+        return (
+          <Star
+            key={i}
+            className={cn(
+              starSizes[size],
+              "transition-colors",
+              isFilled 
+                ? "text-yellow-400 fill-yellow-400" 
+                : "text-muted stroke-muted-foreground fill-none",
+              !readonly && "hover:stroke-yellow-400"
+            )}
+            onClick={() => handleSetRating(starValue)}
+            onMouseEnter={() => !readonly && setHoverRating(starValue)}
+          />
+        )
+      })}
+    </div>
+  )
+}`,
+      'file-tree': `"use client"
+
+import * as React from "react"
+import { ChevronRight, ChevronDown, Folder, File, FolderOpen } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+type FileTreeProps = {
+  data: TreeNode[];
+  onSelect?: (node: TreeNode) => void;
+  initialExpanded?: boolean;
+  className?: string;
+}
+
+type TreeNode = {
+  id: string;
+  name: string;
+  type: "file" | "folder";
+  children?: TreeNode[];
+  meta?: Record<string, any>;
+}
+
+export function FileTree({
+  data,
+  onSelect,
+  initialExpanded = false,
+  className
+}: FileTreeProps) {
+  return (
+    <div className={cn("text-sm", className)}>
+      <ul className="space-y-1">
+        {data.map((node) => (
+          <TreeNode
+            key={node.id}
+            node={node}
+            onSelect={onSelect}
+            initialExpanded={initialExpanded}
+            level={0}
+          />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+type TreeNodeProps = {
+  node: TreeNode;
+  onSelect?: (node: TreeNode) => void;
+  initialExpanded: boolean;
+  level: number;
+}
+
+function TreeNode({ node, onSelect, initialExpanded, level }: TreeNodeProps) {
+  const [expanded, setExpanded] = React.useState(initialExpanded)
+  const hasChildren = node.type === "folder" && node.children && node.children.length > 0
+  
+  const toggleExpand = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (hasChildren) {
+      setExpanded(!expanded)
+    }
+  }
+  
+  const handleSelect = () => {
+    onSelect?.(node)
+  }
+  
+  // File type icon mapping
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.split('.').pop()?.toLowerCase()
+    
+    if (!extension) return <File className="h-4 w-4 text-muted-foreground" />
+    
+    // Example file type mapping - extend as needed
+    const iconMap: Record<string, React.ReactNode> = {
+      js: <File className="h-4 w-4 text-yellow-400" />,
+      ts: <File className="h-4 w-4 text-blue-400" />,
+      jsx: <File className="h-4 w-4 text-cyan-400" />,
+      tsx: <File className="h-4 w-4 text-blue-500" />,
+      css: <File className="h-4 w-4 text-sky-400" />,
+      html: <File className="h-4 w-4 text-orange-400" />,
+      json: <File className="h-4 w-4 text-green-400" />,
+      md: <File className="h-4 w-4 text-gray-400" />,
+    }
+    
+    return iconMap[extension] || <File className="h-4 w-4 text-muted-foreground" />
+  }
+  
+  return (
+    <li>
+      <div 
+        className={cn(
+          "flex items-center py-1 px-1 rounded-md",
+          "hover:bg-muted cursor-pointer"
+        )}
+        style={{ paddingLeft: \`\${level * 12 + 4}px\` }}
+        onClick={handleSelect}
+      >
+        {hasChildren ? (
+          <div className="mr-1 p-0.5" onClick={toggleExpand}>
+            {expanded ? (
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+          </div>
+        ) : (
+          <div className="w-5" />
+        )}
+        
+        <div className="mr-1.5">
+          {node.type === "folder" ? (
+            expanded ? (
+              <FolderOpen className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <Folder className="h-4 w-4 text-yellow-400" />
+            )
+          ) : (
+            getFileIcon(node.name)
+          )}
+        </div>
+        
+        <span className="truncate">{node.name}</span>
+      </div>
+      
+      {hasChildren && expanded && (
+        <ul className="space-y-1">
+          {node.children!.map(childNode => (
+            <TreeNode
+              key={childNode.id}
+              node={childNode}
+              onSelect={onSelect}
+              initialExpanded={initialExpanded}
+              level={level + 1}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  )
+}`,
+      'copy-button': `"use client"
+
+import * as React from "react"
+import { Copy, Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+type CopyButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  value: string;
+  variant?: "default" | "secondary" | "outline" | "ghost";
+  size?: "default" | "sm" | "lg" | "icon";
+  timeout?: number;
+  label?: string;
+  successLabel?: string;
+  tooltipSide?: "top" | "right" | "bottom" | "left";
+  showTooltip?: boolean;
+  className?: string;
+}
+
+export function CopyButton({
+  value,
+  variant = "ghost",
+  size = "icon",
+  timeout = 2000,
+  label = "Copy",
+  successLabel = "Copied!",
+  tooltipSide = "top",
+  showTooltip = true,
+  className,
+  ...props
+}: CopyButtonProps) {
+  const [copied, setCopied] = React.useState(false)
+  
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      
+      setTimeout(() => {
+        setCopied(false)
+      }, timeout)
+    } catch (error) {
+      console.error("Failed to copy text:", error)
+    }
+  }
+  
+  const button = (
+    <Button
+      size={size}
+      variant={variant}
+      onClick={handleCopy}
+      className={cn(className)}
+      {...props}
+    >
+      {copied ? (
+        <Check className="h-4 w-4" />
+      ) : (
+        <Copy className="h-4 w-4" />
+      )}
+      {size !== "icon" && (
+        <span className="ml-2">
+          {copied ? successLabel : label}
+        </span>
+      )}
+    </Button>
+  )
+  
+  if (!showTooltip) {
+    return button
+  }
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {button}
+        </TooltipTrigger>
+        <TooltipContent side={tooltipSide}>
+          <p>{copied ? successLabel : label}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}`
+    };
+    
+    return templates[componentName] || '';
+  };
+  
+  // 4. Optimize file operations with streaming and parallel writes
+  const setupFilesOptimized = async (files) => {
+    const promises = Object.entries(files).map(async ([filePath, content]) => {
+      // Create directories if needed
+      const dirPath = path.dirname(filePath);
+      await fs.ensureDir(dirPath);
+      
+      // Write the file
+      return fs.writeFile(filePath, content);
+    });
+    
+    return Promise.all(promises);
+  };
+  
+  return {
+    installDependenciesConcurrently,
+    installShadcnComponentsBatch,
+    setupFilesOptimized
+  };
+}
+
+// Function to set up Next Auth
+async function setupNextAuth(projectDir) {
+  // Import auth templates
+  const authTemplatesModule = await import('./next-auth-setup.js');
+  
+  // Extract the exported templates
+  const { authConfig, authRouteHandler, signInPage, authProviderContent } = authTemplatesModule;
+  
+  // Create auth directory structure
+  await fs.ensureDir(path.join(projectDir, 'app/api/auth/[...nextauth]'));
+  await fs.ensureDir(path.join(projectDir, 'lib'));
+  await fs.ensureDir(path.join(projectDir, 'components/auth'));
+  
+  // Add route.ts file with proper NextAuth configuration
+  await fs.writeFile(
+    path.join(projectDir, 'app/api/auth/[...nextauth]', 'route.ts'), 
+    authRouteHandler
+  );
+  
+  // Add auth.ts configuration
+  await fs.writeFile(
+    path.join(projectDir, 'lib', 'auth.ts'),
+    authConfig
+  );
+  
+  // Add auth provider component
+  await fs.writeFile(
+    path.join(projectDir, 'components/auth', 'auth-provider.tsx'),
+    authProviderContent
+  );
+  
+  // Create signin page
+  await fs.ensureDir(path.join(projectDir, 'app/auth/signin'));
+  await fs.writeFile(
+    path.join(projectDir, 'app/auth/signin', 'page.tsx'),
+    signInPage
+  );
+  
+  // Create a client-side auth session provider wrapper
+  await fs.writeFile(
+    path.join(projectDir, 'app', 'providers.tsx'),
+    `"use client"
+
+import { SessionProvider } from "next-auth/react"
+import { ThemeProvider } from "@/components/theme-provider"
+import { ReactNode } from "react"
+
+export function Providers({ 
+  children 
+}: { 
+  children: ReactNode 
+}) {
+  return (
+    <SessionProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        {children}
+      </ThemeProvider>
+    </SessionProvider>
+  )
+}`
+  );
+  
+  // Update layout to use the providers component
+  try {
+    const layoutPath = path.join(projectDir, 'app/layout.tsx');
+    let layoutContent = await fs.readFile(layoutPath, 'utf8');
+    
+    // Add import for Providers
+    if (!layoutContent.includes('import { Providers }')) {
+      layoutContent = `import { Providers } from "./providers"\n` + layoutContent;
+    }
+    
+    // Replace ThemeProvider with Providers if it exists
+    if (layoutContent.includes('<ThemeProvider')) {
+      const themeProviderPattern = /<ThemeProvider[\s\S]*?>([\s\S]*?)<\/ThemeProvider>/;
+      const themeProviderMatch = layoutContent.match(themeProviderPattern);
+      
+      if (themeProviderMatch) {
+        const themeProviderContent = themeProviderMatch[1];
+        layoutContent = layoutContent.replace(
+          themeProviderPattern, 
+          `<Providers>${themeProviderContent}</Providers>`
+        );
+      }
+    } else {
+      // If no ThemeProvider, add Providers directly inside body
+      const bodyPattern = /<body[^>]*>([\s\S]*?)<\/body>/;
+      const bodyMatch = layoutContent.match(bodyPattern);
+      
+      if (bodyMatch) {
+        const bodyContent = bodyMatch[1];
+        const bodyStart = bodyMatch[0].split('>')[0] + '>';
+        
+        layoutContent = layoutContent.replace(
+          bodyPattern, 
+          `${bodyStart}\n      <Providers>${bodyContent}</Providers>\n    </body>`
+        );
+      }
+    }
+    
+    await fs.writeFile(layoutPath, layoutContent);
+  } catch (error) {
+    console.log(chalk.yellow(`Warning: Could not update layout with auth provider: ${error.message}`));
+  }
+  
+  // Update package.json to include NextAuth dependencies
+  const pkgJsonPath = path.join(projectDir, 'package.json');
+  const pkgJson = await fs.readJSON(pkgJsonPath);
+  
+  pkgJson.dependencies = {
+    ...pkgJson.dependencies,
+    "next-auth": "^4.24.5",
+    "@auth/mongodb-adapter": "^2.0.0",
+    "mongodb": "^6.3.0"
+  };
+  
+  await fs.writeJSON(pkgJsonPath, pkgJson, { spaces: 2 });
+}
+
+// Function to set up Prisma with MongoDB
+async function setupPrisma(projectDir) {
+  // Import prisma templates
+  const prismaTemplatesModule = await import('./prisma-setup.js');
+  const prismaTemplates = prismaTemplatesModule.default || prismaTemplatesModule;
+  
+  // Create Prisma directory
+  await fs.ensureDir(path.join(projectDir, 'prisma'));
+  await fs.ensureDir(path.join(projectDir, 'lib'));
+  
+  // Create Prisma schema with MongoDB configuration
+  await fs.writeFile(
+    path.join(projectDir, 'prisma', 'schema.prisma'),
+    prismaTemplates.prismaSchema
+  );
+  
+  // Create MongoDB connection utility
+  await fs.writeFile(
+    path.join(projectDir, 'lib', 'mongodb.ts'),
+    prismaTemplates.mongodbClientUtil
+  );
+  
+  // Update package.json to include Prisma and MongoDB dependencies
+  const pkgJsonPath = path.join(projectDir, 'package.json');
+  const pkgJson = await fs.readJSON(pkgJsonPath);
+  
+  pkgJson.dependencies = {
+    ...pkgJson.dependencies,
+    "@prisma/client": "latest",
+    "mongodb": "latest"
+  };
+  
+  pkgJson.devDependencies = {
+    ...pkgJson.devDependencies,
+    "prisma": "latest"
+  };
+  
+  await fs.writeJSON(pkgJsonPath, pkgJson, { spaces: 2 });
+}
+
+// Function to create environment variables file
+async function createEnvFile(projectDir) {
+  const envContent = `# Application
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Authentication
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=${Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)}
+
+# Database - MongoDB
+DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/mydb?retryWrites=true&w=majority"
+
+# Example API keys (replace with your own)
+# GITHUB_ID=your_github_client_id
+# GITHUB_SECRET=your_github_client_secret
+# GOOGLE_CLIENT_ID=your_google_client_id
+# GOOGLE_CLIENT_SECRET=your_google_client_secret
+`;
+  
+  await fs.writeFile(path.join(projectDir, '.env'), envContent);
+  await fs.writeFile(path.join(projectDir, '.env.example'), envContent);
+}
+
+// Add the function to fix TypeScript errors
+async function fixTypeScriptErrors(projectDir) {
+  // Fix for next-themes type issue
+  const themeProviderContent = `"use client"
+
+import * as React from "react"
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  attribute?: string;
+  defaultTheme?: string;
+  enableSystem?: boolean;
+  disableTransitionOnChange?: boolean;
+};
+
+export function ThemeProvider({ 
+  children,
+  attribute = "class",
+  defaultTheme = "system",
+  enableSystem = true,
+  disableTransitionOnChange = false,
+}: ThemeProviderProps) {
+  return (
+    <NextThemesProvider
+      attribute={attribute}
+      defaultTheme={defaultTheme}
+      enableSystem={enableSystem}
+      disableTransitionOnChange={disableTransitionOnChange}
+    >
+      {children}
+    </NextThemesProvider>
+  );
+}`;
+
+  await fs.ensureDir(path.join(projectDir, 'components/theme'));
+  await fs.writeFile(path.join(projectDir, 'components/theme/theme-provider.tsx'), themeProviderContent);
+  
+  // Fix for auth provider type issue
+  const authProviderContent = `"use client"
+
+import { SessionProvider } from "next-auth/react"
+import { ReactNode } from "react"
+
+type AuthProviderProps = {
+  children: ReactNode;
+}
+
+export function AuthProvider({ children }: AuthProviderProps) {
+  return <SessionProvider>{children}</SessionProvider>
+}`;
+
+  await fs.ensureDir(path.join(projectDir, 'components/auth'));
+  await fs.writeFile(path.join(projectDir, 'components/auth/auth-provider.tsx'), authProviderContent);
+  
+  // Update layout.tsx to include providers correctly
+  const layoutPath = path.join(projectDir, 'app/layout.tsx');
+  let layoutContent = await fs.readFile(layoutPath, 'utf8');
+  
+  if (!layoutContent.includes('import { ThemeProvider }')) {
+    layoutContent = `import { ThemeProvider } from "@/components/theme/theme-provider"\n${layoutContent}`;
+  }
+  
+  if (!layoutContent.includes('import { AuthProvider }')) {
+    layoutContent = `import { AuthProvider } from "@/components/auth/auth-provider"\n${layoutContent}`;
+  }
+  
+  // Update the body tag to include providers
+  if (!layoutContent.includes('<ThemeProvider') && !layoutContent.includes('<AuthProvider')) {
+    const bodyPattern = /<body[^>]*>([\s\S]*?)<\/body>/;
+    const bodyMatch = layoutContent.match(bodyPattern);
+    
+    if (bodyMatch) {
+      const bodyTag = bodyMatch[0];
+      const bodyContent = bodyMatch[1];
+      
+      // Extract class names if they exist
+      const classNameMatch = bodyTag.match(/className=["']([^"']*)["']/);
+      const className = classNameMatch ? classNameMatch[1] : '';
+      
+      // Create the replacement with providers
+      const newBodyTag = `<body${className ? ` className="${className}"` : ''}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>${bodyContent}</AuthProvider>
+      </ThemeProvider>
+    </body>`;
+      
+      // Replace the body tag in the layout content
+      layoutContent = layoutContent.replace(bodyPattern, newBodyTag);
+    }
+  }
+  
+  await fs.writeFile(layoutPath, layoutContent);
 }
 
 run();
