@@ -1,0 +1,18 @@
+---
+description: How to extend the Expo universal starter without breaking store, security, or i18n contracts
+alwaysApply: true
+---
+
+# Starter core
+
+This repo is a production Expo SDK 58 starter (NativeWind 5, Tailwind 4). Clone it, then `npm run rebrand`. Do not invent a second app shell.
+
+- Add a product feature under `features/<domain>/` and keep screens in `app/` thin.
+- User-visible copy goes through `t()` and all three locales: `config/i18n/locales/{en,cs,es}.json`.
+- Reuse `components/ui` and `components/native/GlassView`. Do not paste new colors or one-off buttons.
+- Network access goes through `features/*/service.ts` or `lib/security/pinned-fetch.ts`. Screens do not import `@supabase/supabase-js` or call `fetch`.
+- Tokens stay in `lib/secure-store.ts`. Do not import AsyncStorage from `app/`, `components/`, `features/`, or `hooks/`.
+- Persisted keys include the app scheme (`UI_STORAGE_KEY`). Do not hardcode `ui-preferences`, or two web apps on one origin share settings.
+- `EXPO_PUBLIC_UI_PREVIEW=1` is local only. Never set it when `EXPO_PUBLIC_APP_ENV=production`.
+- Theme changes go through `applyColorScheme`. On web, also set the `light` or `dark` class on the document. `Appearance.setColorScheme` alone does not switch Tailwind `dark:` styles in the browser.
+- A template defect found while building a derived app gets fixed in the starter, then re-copied or patched in the derived app. Log it in `STARTER-FEEDBACK.md`. Do not leave the workaround only in the derived app.

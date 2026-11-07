@@ -1,0 +1,15 @@
+---
+description: Auth, secrets, store rules, and preview mode for the Expo starter
+globs: config/**/*.ts,lib/security/**/*.ts,lib/ai/**/*.ts,supabase/**/*.ts,app.config.ts
+alwaysApply: false
+---
+
+# Security and store rules
+
+- The service-role key and any model provider key live in Supabase function secrets. The app only has the anon key and RevenueCat public keys.
+- Account deletion calls `features/auth/service.ts` `deleteCurrentAccount`, then `signOut`. Do not call `auth.admin` from the client.
+- AI prompts pass `assessPrompt` before `runModel`. The edge function repeats that check.
+- Tracking uses `PrePermissionModal` with one button labeled `common.continue`. Do not add Allow, Enable, or a second dismiss button.
+- Store listing text in `store/listing.json` must not contain Free, Cheap, or a price. Run `npm run metadata` after editing it.
+- Preview mode fabricates a local session and skips RevenueCat. Purchases, deletion, and the assistant stay unavailable until real keys replace the preview URL.
+- `getSession` must time out and still reveal the login screen. A failed auth request cannot leave the splash screen up.

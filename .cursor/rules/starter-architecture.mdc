@@ -1,0 +1,22 @@
+---
+description: File layout, data flow, and UI conventions for the Expo starter
+globs: app/**/*.{ts,tsx},features/**/*.{ts,tsx},components/**/*.{ts,tsx},hooks/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Architecture
+
+- One domain per folder: `features/auth`, `features/billing`, `features/moderation`. UI state that is not server data lives in Zustand. Server data lives in TanStack Query via `useAppQuery` / `useAppMutation`.
+- Keep a file under 200 lines. Split a screen before adding another section.
+- New routes are files in `app/`. Register tab screens in `app/(tabs)/_layout.tsx` and modal screens in `app/modal/_layout.tsx`.
+- Forms use `CredentialsForm` patterns: typed inputs, `accessibilityLabel`, and a 48dp target.
+- Empty, loading, and error states use `Skeleton`, `Text variant="muted"`, and `AppErrorBoundary`. Do not leave a blank screen.
+- Haptics come from `Button` or `useHaptics`. Review prompts go through `recordPositiveMilestone`, only after a repeated success.
+
+```tsx
+// Good: screen calls a feature service
+await saveCheckIn(value);
+
+// Bad: screen owns the request
+await supabase.from('checkins').insert({ value });
+```

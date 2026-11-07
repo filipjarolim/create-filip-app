@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy</title>
+<style>
+  body { margin: 0; font: 16px/1.5 ui-sans-serif, system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+  main { max-width: 42rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  a { color: #4338ca; }
+  nav { display: flex; gap: 1rem; margin-bottom: 2rem; }
+</style>
+<main>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/terms">Terms</a>
+    <a href="/support">Support</a>
+  </nav>
+  <h1>Privacy Policy</h1>
+<p>This is a starter policy for Create Filip App. Replace it with counsel-reviewed text before you submit the app.</p>
+<h2>Data we collect</h2>
+<ul>
+<li>Account email and user id, stored in Supabase so you can sign in.</li>
+<li>Purchase status, processed by Apple, Google, and RevenueCat so the app can tell whether Premium is active.</li>
+<li>Permission choices you make for notifications, camera, photos, and, on iOS, tracking.</li>
+</ul>
+<h2>How it is used</h2>
+<p>Account data is used to provide the app. Purchase data is used to unlock Premium. The template does not sell personal information.</p>
+<h2>Tracking</h2>
+<p>The shipped template declares NSPrivacyTracking as false. Do not call the tracking prompt until you add an attribution or advertising SDK, and update PrivacyInfo.xcprivacy when you do.</p>
+<h2>Deletion</h2>
+<p>You can delete the account from Profile. That calls the delete-account Supabase Edge Function, which removes the authenticated user. Add a foreign key with ON DELETE CASCADE for any profile tables you create.</p>
+<h2>Contact</h2>
+<p>Replace this section with the support address you want listed on the store page.</p>
+</main>

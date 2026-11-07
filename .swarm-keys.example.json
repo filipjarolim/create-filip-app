@@ -1,0 +1,8 @@
+{
+  "expo": {
+    "mainKey": "your_expo_personal_access_token_here"
+  },
+  "revenuecat": {
+    "mainKey": "your_revenuecat_v2_secret_api_key_here"
+  }
+}

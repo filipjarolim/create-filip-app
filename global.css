@@ -1,0 +1,38 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-text-primary: #0f172a;
+}
+
+@source "./app";
+@source "./components";
+@source "./features";
+@source "./hooks";
+@source "./providers";
+
+/* Native dark: stays a media query, so Appearance.setColorScheme still switches it.
+   Web cannot override prefers-color-scheme, so the document light/dark class does. */
+@custom-variant dark {
+  @media native {
+    @media (prefers-color-scheme: dark) {
+      @slot;
+    }
+  }
+  @supports selector(div > div) {
+    &:where(.dark, .dark *) {
+      @slot;
+    }
+    @media (prefers-color-scheme: dark) {
+      &:where(:not(.light, .light *)) {
+        @slot;
+      }
+    }
+  }
+}

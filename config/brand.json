@@ -1,0 +1,9 @@
+{
+  "appName": "Create Filip App",
+  "slug": "create-filip-app",
+  "bundleId": "com.filip.createfilipapp",
+  "scheme": "createfilipapp",
+  "supabaseUrl": "https://bvpooknglnblxgwwylvk.supabase.co",
+  "revenueCatIosKey": "appl_REPLACE_ME",
+  "revenueCatAndroidKey": "goog_REPLACE_ME"
+}

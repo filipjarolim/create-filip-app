@@ -1,0 +1,13 @@
+---
+description: Fix starter defects in the starter repo, not only in the derived app
+alwaysApply: true
+---
+
+# Starter feedback
+
+A defect in shared starter behavior gets fixed in the starter, then in the derived app. Shared behavior means theme, tab bar, `components/ui`, premade blocks, i18n plumbing, auth and billing shell, swarm, and security helpers.
+
+- If this workspace is the starter, fix it here and add a row to `STARTER-FEEDBACK.md`.
+- If this workspace is a clone, apply the same fix in `~/Developer/create-filip-app` when that checkout exists, add the row there, and keep the clone in sync.
+- Product-only screens, names, and copy stay in the derived app.
+- Do not record a workaround that leaves the starter broken.
